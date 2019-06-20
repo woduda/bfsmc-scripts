@@ -28,10 +28,7 @@ class Run
 
     public function main()
     {
-
-        if ($this->ws->connect()) {
-            $this->send("say test");
-        } else {
+        if (! $this->ws->connect()) {
             echo "Connection error! Check ip, pass and port.\n";
             return;
         }
