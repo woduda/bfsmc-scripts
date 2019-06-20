@@ -1,5 +1,7 @@
 <?php
 
+define('FCPATH', str_replace(pathinfo(__FILE__, PATHINFO_BASENAME), '', __FILE__));
+
 require_once("WebsenderAPI.php");
 
 class Run
@@ -21,7 +23,7 @@ class Run
 
     protected function config()
     {
-        return include "./config.php";
+        return include FCPATH."config.php";
     }
 
     public function main()
