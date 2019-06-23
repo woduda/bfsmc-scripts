@@ -38,43 +38,45 @@ class Run
         $this->ws->disconnect();
     }
 
-
     protected function updateTitles()
     {
         $db_content = @file_get_contents($this->config['db_path']);
         $bfs_content = @file_get_contents($this->config['bfs_path']);
 
         $awards = json_decode($db_content, true)['awards'];
+        $players = [];
+        foreach ($awards as $id => $award) {
+            $uuid = $award['best']['uuid'] ?? false;
+            if ($uuid === false) {
+                continue;
+            }
+            $players[$uuid][$id] = $award['title'];
+        }
 
         if ($bfs_content) {
             $bfs = json_decode($bfs_content, true);
         } else {
             $bfs = [];
         }
-        $isset = [];
-        foreach ($awards as $id => $award) {
-            $uuid = $award['best']['uuid'] ?? false;
+
+        foreach ($players as $uuid => $awards) {
+            $id = array_rand($awards, 1);
             $_uuid = $bfs['titles'][$id] ?? false;
 
             if ($uuid === $_uuid) {
-                $isset[] = $uuid;
                 continue;
             }
-
             if ($_uuid !== false) {
                 $this->setTitle($_uuid, ''); // clear old title
-                unset($bfs['titles'][$id]);
             }
-            if (! in_array($uuid, $isset)) {
-                $k = array_search($uuid, $bfs['titles'] ?? []);
-                if ($k !== $id) {
-                    $this->setTitle($uuid, $award['title']);
-                    $isset[] = $uuid;
-
+            $k = array_search($uuid, $bfs['titles']);
+            if ($id !== $k) {
+                $this->setTitle($uuid, $awards[$id]);
+                if ($k !== false) {
                     unset($bfs['titles'][$k]);
-                    $bfs['titles'][$id] = $uuid;
                 }
             }
+            $bfs['titles'][$id] = $uuid;
         }
 
         @file_put_contents($this->config['bfs_path'], json_encode($bfs));
